@@ -1,12 +1,11 @@
 import axios from "axios";
 
-// ✅ Real backend URL
+
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   withCredentials: true,
 });
 
-// ✅ Attach token
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -16,7 +15,6 @@ API.interceptors.request.use((config) => {
 // ---------- AUTH ----------
 export const authAPI = {
   login: (data) => API.post("/auth/login", data),
-  profile: () => API.get("/auth/profile"),
 };
 
 // ---------- STUDENT ----------

@@ -1,107 +1,63 @@
+// controllers/attendanceController.js
 import Attendance from "../models/Attendance.js";
-import crypto from "crypto";
+import User from "../models/User.js";
+import dayjs from "dayjs";
 
-const qrCodes = new Map();
-
+// Faculty generates QR payload (you already generate QR on frontend)
+// We can still provide a helper endpoint if needed.
 export const generateQR = async (req, res) => {
-  try {
-    const { courseId } = req.body;
-    
-    if (!courseId) {
-      return res.status(400).json({ error: "Course ID required" });
-    }
-
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
-
-    qrCodes.set(token, { courseId, facultyId: req.user._id, expiresAt });
-
-    res.json({ token, expiresAt });
-  } catch (e) {
-    console.error("Generate QR error:", e);
-    res.status(500).json({ error: e.message });
-  }
+  // (Optional) You can validate class/period or sign payload
+  const { classId, period } = req.body;
+  if (!classId || !period) return res.status(400).json({ error: "classId & period required" });
+  const payload = `classId=${encodeURIComponent(classId)}&period=${encodeURIComponent(period)}&ts=${Date.now()}`;
+  res.json({ payload });
 };
 
-export const scanQR = async (req, res) => {
-  try {
-    const { token, studentId } = req.body;
-
-    if (!token || !studentId) {
-      return res.status(400).json({ error: "Token and student ID required" });
-    }
-
-    const qrData = qrCodes.get(token);
-    
-    if (!qrData) {
-      return res.status(404).json({ error: "Invalid QR code" });
-    }
-
-    if (Date.now() > qrData.expiresAt) {
-      qrCodes.delete(token);
-      return res.status(400).json({ error: "QR code expired" });
-    }
-
-    const attendance = await Attendance.create({
-      student: studentId,
-      course: qrData.courseId,
-      status: "Present",
-    });
-
-    res.json({ message: "Attendance marked", attendance });
-  } catch (e) {
-    console.error("Scan QR error:", e);
-    res.status(500).json({ error: e.message });
-  }
-};
-
+// Student submits after scan
 export const markAttendance = async (req, res) => {
   try {
-    const { studentId, courseId, status } = req.body;
-
-    if (!studentId || !courseId) {
-      return res.status(400).json({ error: "Student ID and course ID required" });
+    const { regdNo, classId, period } = req.body;
+    if (!regdNo || !classId || !period) {
+      return res.status(400).json({ error: "regdNo, classId, period required" });
     }
 
-    const attendance = await Attendance.create({
-      student: studentId,
-      course: courseId,
-      status: status || "Present",
+    // Try to associate student by rollNo if exists:
+    const student = await User.findOne({ rollNo: regdNo, role: "student" });
+    const faculty = req.user?.role === "faculty" ? req.user.id : null; // if faculty marks
+    const record = await Attendance.create({
+      regdNo,
+      classId,
+      period: String(period),
+      status: "present",
+      student: student?._id || null,
+      faculty: faculty || null,
+      timestamp: new Date(),
     });
 
-    res.json({ message: "Attendance marked", attendance });
+    res.json({ message: "Attendance marked", record });
   } catch (e) {
-    console.error("Mark attendance error:", e);
     res.status(500).json({ error: e.message });
   }
 };
 
-export const getByFaculty = async (req, res) => {
-  try {
-    const { courseId } = req.query;
-    
-    const query = courseId ? { course: courseId } : {};
-    const attendance = await Attendance.find(query)
-      .populate("student", "name rollNo")
-      .populate("course", "name code")
-      .sort({ date: -1 });
-
-    res.json(attendance);
-  } catch (e) {
-    console.error("Get faculty attendance error:", e);
-    res.status(500).json({ error: e.message });
-  }
-};
-
+// For student (their own records)
 export const getByStudent = async (req, res) => {
-  try {
-    const attendance = await Attendance.find({ student: req.user._id })
-      .populate("course", "name code")
-      .sort({ date: -1 });
+  const me = await User.findById(req.user.id);
+  if (!me || me.role !== "student") return res.status(403).json({ error: "Forbidden" });
+  const list = await Attendance.find({ $or: [{ student: me._id }, { regdNo: me.rollNo }] }).sort({ timestamp: -1 });
+  res.json(list);
+};
 
-    res.json(attendance);
-  } catch (e) {
-    console.error("Get student attendance error:", e);
-    res.status(500).json({ error: e.message });
+// For faculty (all records, optionally filter by classId or date)
+export const getByFaculty = async (req, res) => {
+  const { classId, date } = req.query;
+  const q = {};
+  if (classId) q.classId = classId;
+  if (date) {
+    const start = dayjs(date).startOf("day").toDate();
+    const end = dayjs(date).endOf("day").toDate();
+    q.timestamp = { $gte: start, $lte: end };
   }
+  const list = await Attendance.find(q).sort({ timestamp: -1 });
+  res.json(list);
 };

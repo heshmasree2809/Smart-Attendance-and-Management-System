@@ -10,6 +10,7 @@ import Profile from "../pages/Student/Profile";
 import Assignments from "../pages/Student/Assignments";
 import AttendanceAnalytics from "../pages/Student/AttendanceAnalytics";
 import IDCard from "../pages/Student/IDCard";
+import StudentSettings from "../pages/Student/Settings";
 
 export default function StudentLayout() {
 
@@ -39,6 +40,7 @@ export default function StudentLayout() {
             <Route path="profile" element={<Profile />} />
             <Route path="assignments" element={<Assignments />} />
             <Route path="attendance-analytics" element={<AttendanceAnalytics />} />
+            <Route path="settings" element={<StudentSettings />} />
             <Route path="id-card" element={<IDCard />} />
 
             {/* default route */}

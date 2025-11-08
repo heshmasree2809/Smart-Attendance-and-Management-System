@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { authAPI } from "../../services/api.js";
+  // ✅ IMPORTANT
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,35 +11,34 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("student");
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
 
-    const user = { role, email };
-    localStorage.setItem("scaams_user", JSON.stringify(user));
+    try {
+      const res = await authAPI.login({ email, password, role });
 
-    toast.success(`${role.toUpperCase()} Login Successful ✅`);
-    navigate(`/${role}/dashboard`);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("scaams_user", JSON.stringify(res.data.user));
+
+      toast.success("Login Successful ✅");
+      navigate(`/${role}/dashboard`);
+
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response?.data?.message || "Login Failed");
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center 
       bg-gradient-to-br from-[#F5F3FF] via-[#EDE9FE] to-[#F3E8FF] p-4">
 
-      {/* Glass Card */}
-      <form
-        onSubmit={submit}
-        className="glass-card w-full max-w-md animate-pop"
-      >
-        <h1 className="text-4xl font-semibold text-center text-[#4C1D95] mb-3"
-            style={{ fontFamily: "Poppins" }}>
+      <form onSubmit={submit} className="glass-card w-full max-w-md animate-pop">
+        <h1 className="text-4xl font-semibold text-center text-[#4C1D95] mb-3">
           Welcome Back
         </h1>
-        <p className="text-center text-[#6B21A8] mb-6">
-          Login to your SCAAMS Portal
-        </p>
 
         <div className="space-y-4">
-
           <input
             type="email"
             className="input"
@@ -54,7 +55,6 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          {/* Role Selector */}
           <select
             className="input"
             value={role}
@@ -69,14 +69,6 @@ export default function Login() {
             Login
           </button>
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-sm text-[#6B21A8] mt-6">
-          Don't have an account?{" "}
-          <span className="text-[#4C1D95] font-medium cursor-pointer hover:underline">
-            Contact Admin
-          </span>
-        </p>
       </form>
     </div>
   );

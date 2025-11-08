@@ -17,15 +17,7 @@ export default function FacultyDashboard() {
           <p className="text-4xl mt-3 font-bold text-[#6D28D9]">3</p>
         </div>
 
-        {/* Generate QR */}
-        <div className="card-soft card-hover bg-gradient-to-br from-[#EFE5FF] to-[#F7F2FF]">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-[#4C1D95]">Generate QR</h2>
-            <QrCode size={26} className="text-[#7C3AED] neon-icon" />
-          </div>
-          <p className="text-sm text-slate-600 mt-3">Generate attendance QR codes</p>
-        </div>
-
+ 
         {/* Students */}
         <div className="card-soft card-hover bg-gradient-to-br from-[#F8F4FF] to-[#EFE8FF]">
           <div className="flex justify-between items-center">

@@ -12,10 +12,11 @@ export default function Sidebar({ links }) {
 
       <div className="flex flex-col gap-2">
         {links.map(({ path, label, icon }, index) => {
-          
-          const IconComp = Icons[icon] || Icons.Circle;
 
-          // ✅ Absolute path → correct & simple
+          // ✅ SAFE FALLBACK so app NEVER breaks
+          const IconComp = Icons[icon] || Icons.FileText;
+
+          // ✅ Perfect route match
           const isActive = pathname === path;
 
           return (
@@ -38,7 +39,6 @@ export default function Sidebar({ links }) {
           );
         })}
       </div>
-
     </div>
   );
 }

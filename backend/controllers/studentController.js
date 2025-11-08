@@ -1,40 +1,24 @@
-import User from "../models/User.js";
-import Attendance from "../models/Attendance.js";
+// controllers/studentController.js
 import Assignment from "../models/Assignment.js";
+import Attendance from "../models/Attendance.js";
+import User from "../models/User.js";
 
-export const getProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id).select("-password");
-    res.json(user);
-  } catch (e) {
-    console.error("Get profile error:", e);
-    res.status(500).json({ error: e.message });
-  }
+export const myAttendance = async (req, res) => {
+  const me = await User.findById(req.user.id);
+  const list = await Attendance.find({ $or: [{ student: me._id }, { regdNo: me.rollNo }] }).sort({ timestamp: -1 });
+  res.json(list);
 };
 
-export const getDashboard = async (req, res) => {
-  try {
-    const studentId = req.user._id;
+export const myAssignments = async (_req, res) => {
+  const list = await Assignment.find().sort({ createdAt: -1 });
+  res.json(list);
+};
 
-    const attendanceCount = await Attendance.countDocuments({ 
-      student: studentId, 
-      status: "Present" 
-    });
-
-    const assignments = await Assignment.find()
-      .populate("course", "name");
-
-    const submittedCount = assignments.filter(a => 
-      a.submissions.some(s => s.student.toString() === studentId.toString())
-    ).length;
-
-    res.json({
-      attendance: attendanceCount,
-      assignmentsTotal: assignments.length,
-      assignmentsSubmitted: submittedCount,
-    });
-  } catch (e) {
-    console.error("Get dashboard error:", e);
-    res.status(500).json({ error: e.message });
-  }
+// Mock marks — replace with real marks collection if needed
+export const myMarks = async (_req, res) => {
+  res.json([
+    { subject: "OS", internal: 24, external: 58, total: 82 },
+    { subject: "DBMS", internal: 20, external: 64, total: 84 },
+    { subject: "CN", internal: 22, external: 60, total: 82 },
+  ]);
 };
