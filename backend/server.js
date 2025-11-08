@@ -36,5 +36,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/faculty", facultyRoutes);
 
-const PORT = 5000;
-app.listen(PORT, () => console.log(`✅ SCAAMS API running http://localhost:${PORT}`));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () =>
+  console.log(`✅ SCAAMS API running on port ${PORT}`)
+);
