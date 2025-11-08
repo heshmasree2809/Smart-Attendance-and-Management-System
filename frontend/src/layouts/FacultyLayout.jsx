@@ -5,7 +5,6 @@ import { Routes, Route } from "react-router-dom";
 
 import FacultyDashboard from "../pages/Faculty/Dashboard";
 import Settings from "../pages/Faculty/Settings";
-import GenerateQR from "../pages/Faculty/GenerateQR";
 import AttendanceList from "../pages/Faculty/AttendanceList";
 import ViewAttendance from "../pages/Faculty/ViewAttendance";
 import FacultyAssignments from "../pages/Faculty/Assignments";
@@ -17,7 +16,6 @@ import Profile from "../pages/Faculty/Profile";          // ✅ FIXED
 export default function FacultyLayout() {
   const links = [
     { path: "/faculty/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
-    { path: "/faculty/generate-qr", label: "Generate QR", icon: "QrCode" },
     { path: "/faculty/attendance-list", label: "Attendance List", icon: "ClipboardList" },
     { path: "/faculty/view-attendance", label: "View Attendance", icon: "List" },
     { path: "/faculty/assignments", label: "Assignments", icon: "BookCheck" },
@@ -35,7 +33,6 @@ export default function FacultyLayout() {
 
           <Routes>
             <Route path="dashboard" element={<FacultyDashboard />} />
-            <Route path="generate-qr" element={<GenerateQR />} />
             <Route path="attendance-list" element={<AttendanceList />} />
             <Route path="view-attendance" element={<ViewAttendance />} />
             <Route path="assignments" element={<FacultyAssignments />} />
